@@ -1,18 +1,30 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { RegisterUserParams } from './types/auth.type';
+import { CreateUserDto, GetUserByEmailDto } from './auth.dto';
+import { ApiBody, ApiTags } from '@nestjs/swagger';
 
 @Controller('auth')
+@ApiTags('Auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @HttpCode(HttpStatus.OK)
+  @ApiBody({
+    type: GetUserByEmailDto,
+    description: 'Login user',
+  })
   @Post('/login')
-  login(@Body() email: string, @Body() password: string) {
-    return this.authService.findOneByEmail(email, password);
+  login(@Body() user: GetUserByEmailDto) {
+    return this.authService.getUserByEmail(user);
   }
 
+  @HttpCode(HttpStatus.OK)
+  @ApiBody({
+    type: CreateUserDto,
+    description: 'Sign up user',
+  })
   @Post('/sign-up')
-  signup(@Body() user: RegisterUserParams) {
+  signup(@Body() user: CreateUserDto) {
     return this.authService.create(user);
   }
 }

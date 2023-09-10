@@ -26,12 +26,26 @@ export class User {
   @Prop({
     required: true,
   })
-  password: number;
+  password: string;
 
   @Prop({
     required: true,
   })
   phonenumber: string;
+
+  @Prop({
+    type: {
+      ward: String,
+      district: String,
+      city: String,
+    },
+    default: null,
+  })
+  address: {
+    ward: string;
+    district: string;
+    city: string;
+  };
 
   @Prop()
   created_at?: Date;

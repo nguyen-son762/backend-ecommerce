@@ -1,11 +1,13 @@
 import mongoose from 'mongoose';
-import bcrypt from 'bcrypt';
-import { Injectable } from '@nestjs/common';
+import { Injectable, HttpStatus } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/mongoose';
 import { User } from './schemas/auth.schema';
-import { RegisterUserParams } from './types/auth.type';
-
+import { CreateUserDto, GetUserByEmailDto } from './auth.dto';
+import { errorException } from 'src/helpers/error.helper';
+import { USER_ERROR_MESSAGES } from './auth.constants';
+import { SERVER_MESSAGES } from 'src/constants/http.constants';
+import { comparePassword, encodePassword } from 'src/utils/bcrypt';
 @Injectable()
 export class AuthService {
   constructor(
@@ -14,29 +16,70 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
-  async findOneByEmail(email: string, password: string) {
-    const users = await this.userModel.findOne({ email });
-    return 'This action adds a new auth ';
+  async getUserByEmail(params: GetUserByEmailDto) {
+    try {
+      const { email, password } = params;
+      const user = await this.userModel.findOne({ email });
+      if (!user) {
+        throw errorException(
+          HttpStatus.INTERNAL_SERVER_ERROR,
+          USER_ERROR_MESSAGES.NOT_FOUND_EMAIL,
+        );
+      }
+      const isMatchPassword = comparePassword(password, user.password);
+      if (user && isMatchPassword) {
+        const accessToken = await this.generateJwt(user);
+        return {
+          user,
+          accessToken,
+        };
+      }
+      throw errorException(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        USER_ERROR_MESSAGES.EMAIL_PASSWORD_WRONG,
+      );
+    } catch (err) {
+      if (err?.keyValue?.email) {
+        throw errorException(
+          HttpStatus.INTERNAL_SERVER_ERROR,
+          USER_ERROR_MESSAGES.EMAIL_DUPLICATE,
+        );
+      }
+      throw errorException(HttpStatus.INTERNAL_SERVER_ERROR, err);
+    }
   }
 
-  async create(params: RegisterUserParams): Promise<User> {
-    const user = await this.userModel.create(params);
-    return user;
+  async create(params: CreateUserDto) {
+    try {
+      const hashPassword = encodePassword(params.password);
+      const user = await this.userModel.create({
+        ...params,
+        password: hashPassword,
+      });
+      if (!user) {
+        throw errorException(
+          HttpStatus.INTERNAL_SERVER_ERROR,
+          SERVER_MESSAGES.ERROR,
+        );
+      }
+      const accessToken = await this.generateJwt(user);
+      return {
+        user,
+        accessToken,
+      };
+    } catch (err) {
+      if (err?.keyValue?.email) {
+        throw errorException(
+          HttpStatus.INTERNAL_SERVER_ERROR,
+          'Email is duplicate',
+        );
+      }
+      throw errorException(HttpStatus.INTERNAL_SERVER_ERROR, err);
+    }
   }
 
   async generateJwt(user: User): Promise<string> {
     return this.jwtService.signAsync({ user });
-  }
-
-  async hashPassword(password: string): Promise<string> {
-    return bcrypt.hash(password, 12);
-  }
-
-  async comparePasswords(
-    password: string,
-    storedPasswordHash: string,
-  ): Promise<any> {
-    return bcrypt.compare(password, storedPasswordHash);
   }
 
   verifyJwt(jwt: string): Promise<any> {

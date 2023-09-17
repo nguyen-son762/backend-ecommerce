@@ -3,40 +3,66 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
   Delete,
+  HttpCode,
+  HttpStatus,
+  Query,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { ProductService } from './product.service';
-import { CreateProductDto } from './dto/create-product.dto';
-import { UpdateProductDto } from './dto/update-product.dto';
+import { CreateProductDto, FindByPaginationParams } from './product.dto';
 
 @Controller('product')
 @ApiTags('product')
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
+  @HttpCode(HttpStatus.OK)
   @Post()
   create(@Body() createProductDto: CreateProductDto) {
     return this.productService.create(createProductDto);
   }
 
+  @HttpCode(HttpStatus.OK)
+  @ApiQuery({
+    name: 'keyword',
+    required: false,
+  })
+  @ApiQuery({
+    name: 'page',
+  })
+  @ApiQuery({
+    name: 'limit',
+  })
+  @ApiQuery({
+    name: 'sort_by',
+    required: false,
+  })
+  @ApiQuery({
+    name: 'sort_value',
+    required: false,
+  })
   @Get()
-  findAll() {
-    return this.productService.findAll();
+  findProductByPagination(@Query() params: FindByPaginationParams) {
+    return this.productService.findByPagination(params);
   }
 
+  @HttpCode(HttpStatus.OK)
+  @ApiParam({
+    name: 'id',
+  })
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.productService.findOne(+id);
+    return this.productService.findOne(id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
-    return this.productService.update(+id, updateProductDto);
-  }
+  // @Patch(':id')
+  // update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
+  //   return this.productService.update(+id, updateProductDto);
+  // }
 
+  @HttpCode(HttpStatus.OK)
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.productService.remove(+id);

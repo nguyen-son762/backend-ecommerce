@@ -9,7 +9,7 @@ import { HttpExceptionFilter } from './filters/http-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   app.setGlobalPrefix('api/');
   const config = new DocumentBuilder()
     .setTitle('Ecommerce docs')
@@ -17,6 +17,11 @@ async function bootstrap() {
     .setVersion('1.0')
     .addBearerAuth()
     .build();
+  app.enableCors({
+    origin: ['http://localhost:3000'],
+    methods: ['*'],
+    credentials: true,
+  });
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('docs', app, document);
   app.use(ApplicationLogger);

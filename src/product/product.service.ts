@@ -1,24 +1,62 @@
-import { Injectable } from '@nestjs/common';
-import { CreateProductDto } from './dto/create-product.dto';
-import { UpdateProductDto } from './dto/update-product.dto';
+import { HttpStatus, Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { Product } from './schemas/product.schema';
+import mongoose from 'mongoose';
+import { CreateProductDto, FindByPaginationParams } from './product.dto';
+import { errorException } from 'src/helpers/error.helper';
 
 @Injectable()
 export class ProductService {
-  create(createProductDto: CreateProductDto) {
-    return 'This action adds a new product';
+  constructor(
+    @InjectModel(Product.name)
+    private productModel: mongoose.Model<Product>,
+  ) {}
+  async create(createProductDto: CreateProductDto) {
+    try {
+      const product = await this.productModel.create(createProductDto);
+      return product;
+    } catch (err) {
+      throw errorException(HttpStatus.INTERNAL_SERVER_ERROR, err);
+    }
   }
 
-  findAll() {
-    return `This action returns all product`;
+  async findByPagination(params: FindByPaginationParams) {
+    const { keyword, limit, page, sort_by = '', sort_value = '' } = params;
+    console.warn('params', params);
+    let options = {};
+    if (keyword) {
+      options = {
+        $or: [
+          {
+            name: new RegExp(keyword, 'i'),
+          },
+        ],
+      };
+    }
+    const products = this.productModel.find(options);
+    if (sort_by && sort_value) {
+      products.sort({ [sort_value]: sort_by === 'asc' ? -1 : 1 });
+    }
+    const data = await products
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .exec();
+
+    return data;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} product`;
+  async findOne(id: string) {
+    try {
+      const product = await this.productModel.findById(id);
+      return product;
+    } catch (err) {
+      throw errorException(HttpStatus.INTERNAL_SERVER_ERROR, err);
+    }
   }
 
-  update(id: number, updateProductDto: UpdateProductDto) {
-    return `This action updates a #${id} product`;
-  }
+  // update(id: number, updateProductDto: UpdateProductDto) {
+  //   return `This action updates a #${id} product`;
+  // }
 
   remove(id: number) {
     return `This action removes a #${id} product`;

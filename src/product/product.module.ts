@@ -3,6 +3,7 @@ import { ProductService } from './product.service';
 import { ProductController } from './product.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ProductSchema } from './schemas/product.schema';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 
 @Module({
   imports: [
@@ -14,6 +15,6 @@ import { ProductSchema } from './schemas/product.schema';
     ]),
   ],
   controllers: [ProductController],
-  providers: [ProductService],
+  providers: [ProductService, CloudinaryService],
 })
 export class ProductModule {}

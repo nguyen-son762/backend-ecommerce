@@ -22,7 +22,6 @@ export class ProductService {
 
   async findByPagination(params: FindByPaginationParams) {
     const { keyword, limit, page, sort_by = '', sort_value = '' } = params;
-    console.warn('params', params);
     let options = {};
     if (keyword) {
       options = {

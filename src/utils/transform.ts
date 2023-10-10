@@ -23,7 +23,6 @@ export function toBoolean(value: string): boolean {
 }
 
 export function toNumber(value: string, opts: ToNumberOptions = {}): number {
-  console.warn('value', value);
   let newValue: number = Number.parseInt(value || String(opts.default), 10);
 
   if (Number.isNaN(newValue)) {

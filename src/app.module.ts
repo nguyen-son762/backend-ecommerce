@@ -8,6 +8,9 @@ import { CategoriesModule } from './categories/categories.module';
 import { AuthMiddleware } from './middlewares/auth.middleware';
 import { ConfigModule } from '@nestjs/config';
 import { PromotionModule } from './promotion/promotion.module';
+import { OrderModule } from './order/order.module';
+import { Cloudinary } from './cloudinary/cloudinary/cloudinary';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
 
 @Module({
   imports: [
@@ -19,9 +22,11 @@ import { PromotionModule } from './promotion/promotion.module';
     ProductModule,
     CategoriesModule,
     PromotionModule,
+    OrderModule,
+    CloudinaryModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, Cloudinary],
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {

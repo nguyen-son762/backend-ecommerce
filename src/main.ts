@@ -22,15 +22,11 @@ async function bootstrap() {
     methods: ['*'],
     credentials: true,
   });
+  console.log('Swagger in http://localhost:4000/docs');
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('docs', app, document);
   app.use(ApplicationLogger);
-  app.enableCors({
-    origin: ['http://localhost:4000'],
-    methods: ['*'],
-    credentials: true,
-  });
   app.useGlobalFilters(new HttpExceptionFilter());
-  await app.listen(4000);
+  await app.listen(process.env.PORT);
 }
 bootstrap();

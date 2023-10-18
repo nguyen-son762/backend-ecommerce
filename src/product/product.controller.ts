@@ -95,7 +95,10 @@ export class ProductController {
     },
   })
   @UseInterceptors(FileInterceptor('file'))
-  uploadImage(@UploadedFile() file: Express.Multer.File) {
-    return this.cloudinaryService.uploadFile(file);
+  async uploadImage(@UploadedFile() file: Express.Multer.File) {
+    const result = await this.cloudinaryService.uploadFile(file);
+    return {
+      url: result.url
+    }
   }
 }

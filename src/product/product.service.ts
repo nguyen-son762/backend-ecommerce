@@ -21,7 +21,7 @@ export class ProductService {
   }
 
   async findByPagination(params: FindByPaginationParams) {
-    const { keyword, limit, page, sort_by = '', sort_value = '' } = params;
+    const { keyword, limit, page = 1, sort_by = '', sort_value = '' } = params;
     let options = {};
     if (keyword) {
       options = {
@@ -40,8 +40,18 @@ export class ProductService {
       .skip((page - 1) * limit)
       .limit(limit)
       .exec();
+    const total = await this.productModel.countDocuments();
 
-    return data;
+    return {
+      pagination: {
+        total,
+        current_page: page,
+        total_page: Math.round(total / limit),
+      },
+      data,
+      sort_by,
+      sort_value,
+    };
   }
 
   async findOne(id: string) {

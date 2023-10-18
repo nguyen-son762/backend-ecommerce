@@ -45,6 +45,7 @@ export class User {
   role: UserRole;
 
   @Prop({
+    _id: false,
     type: {
       ward: String,
       district: String,

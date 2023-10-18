@@ -1,23 +1,60 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { HydratedDocument } from 'mongoose';
+import { HydratedDocument, Types } from 'mongoose';
+import { Product } from 'src/product/schemas/product.schema';
 
-export type PromotionDocument = HydratedDocument<Promotion>;
+export type PromotionDocument = HydratedDocument<Order>;
+
+export enum OrderStatusEnums {
+  ORDERED = 'ordered',
+  CONFIRM = 'confirm',
+  SHIPPING = 'shipping',
+  COMPLETED = 'completed',
+}
 
 @Schema({
   timestamps: true,
 })
-export class Promotion {
+export class Order {
+  @Prop({
+    required: true,
+    default: [],
+    type: Types.ObjectId,
+    ref: Product.name,
+  })
+  product: Product;
+
   @Prop({
     required: true,
     type: String,
   })
-  title: string;
+  model_id: string;
 
   @Prop({
     required: true,
     type: Number,
   })
-  value: number;
+  amount: number;
+
+  @Prop({
+    required: true,
+    type: String,
+  })
+  status: OrderStatusEnums;
+
+  @Prop({
+    _id: false,
+    type: {
+      ward: String,
+      district: String,
+      city: String,
+    },
+    default: null,
+  })
+  address: {
+    ward: string;
+    district: string;
+    city: string;
+  };
 
   @Prop()
   created_at?: Date;
@@ -26,4 +63,4 @@ export class Promotion {
   updated_at?: Date;
 }
 
-export const PromotionSchema = SchemaFactory.createForClass(Promotion);
+export const OrderSchema = SchemaFactory.createForClass(Order);
